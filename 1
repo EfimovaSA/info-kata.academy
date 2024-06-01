@@ -1,0 +1,138 @@
+import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
+
+class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Введите выражение: ");
+        String input = scanner.nextLine();
+        try {
+            System.out.println(calc(input));
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+
+    public static String calc(String input) throws Exception {
+        String[] operators = {"\\+", "-", "\\*", "/"};
+        String operator = "";
+        for (String op : operators) {
+            if (input.contains(op.replace("\\", ""))) {
+                operator = op;
+                break;
+            }
+        }
+
+        if (operator.isEmpty()) {
+            throw new Exception("Некорректный оператор");
+        }
+
+        String[] parts = input.split(operator);
+        if (parts.length != 2) {
+            throw new Exception("Некорректный формат выражения");
+        }
+
+        String part1 = parts[0].trim();
+        String part2 = parts[1].trim();
+
+        boolean isRoman = isRoman(part1) && isRoman(part2);
+        boolean isArabic = isArabic(part1) && isArabic(part2);
+
+        if (!(isRoman || isArabic)) {
+            throw new Exception("Числа должны быть либо оба римскими, либо оба арабскими");
+        }
+
+        int num1 = isRoman ? romanToArabic(part1) : Integer.parseInt(part1);
+        int num2 = isRoman ? romanToArabic(part2) : Integer.parseInt(part2);
+
+        if (num1 < 1 || num1 > 10 || num2 < 1 || num2 > 10) {
+            throw new Exception("Числа должны быть от 1 до 10 включительно");
+        }
+
+        int result;
+        switch (operator.replace("\\", "")) {
+            case "+":
+                result = num1 + num2;
+                break;
+            case "-":
+                result = num1 - num2;
+                break;
+            case "*":
+                result = num1 * num2;
+                break;
+            case "/":
+                if (num2 == 0) {
+                    throw new Exception("Деление на ноль");
+                }
+                result = num1 / num2;
+                break;
+            default:
+                throw new Exception("Некорректный оператор");
+        }
+
+        if (isRoman) {
+            if (result < 1) {
+                throw new Exception("Результат меньше единицы для римских чисел");
+            }
+            return arabicToRoman(result);
+        } else {
+            return String.valueOf(result);
+        }
+    }
+
+    private static boolean isRoman(String value) {
+        return value.matches("(?i)^(I|II|III|IV|V|VI|VII|VIII|IX|X)$");
+    }
+
+    private static boolean isArabic(String value) {
+        try {
+            int num = Integer.parseInt(value);
+            return num >= 1 && num <= 10;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static int romanToArabic(String roman) throws Exception {
+        Map<String, Integer> romanNumerals = new HashMap<>();
+        romanNumerals.put("I", 1);
+        romanNumerals.put("II", 2);
+        romanNumerals.put("III", 3);
+        romanNumerals.put("IV", 4);
+        romanNumerals.put("V", 5);
+        romanNumerals.put("VI", 6);
+        romanNumerals.put("VII", 7);
+        romanNumerals.put("VIII", 8);
+        romanNumerals.put("IX", 9);
+        romanNumerals.put("X", 10);
+
+        Integer arabic = romanNumerals.get(roman.toUpperCase());
+        if (arabic == null) {
+            throw new Exception("Некорректное римское число");
+        }
+        return arabic;
+    }
+
+    private static String arabicToRoman(int number) {
+        String[] romanNumerals = {
+                "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+                "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC", "C"
+        };
+
+        String result = "";
+        if (number == 100) {
+            return "C";
+        } else {
+            int tens = number / 10;
+            int units = number % 10;
+            if (tens > 0) {
+                result += romanNumerals[10 * tens];
+            }
+            if (units > 0) {
+                result += romanNumerals[units];
+            }
+            return result;
+        }
+    }
+}
